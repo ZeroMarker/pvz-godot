@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://f5k3q2j1k1k1k"]
+[gd_scene load_steps=1 format=3 uid="uid://f5k3q2j1k1k1k"]
 
 [ext_resource type="Script" path="res://scripts/sun.gd" id="1_mno345"]
 
@@ -11,9 +11,5 @@ position = Vector2(0, 0)
 scale = Vector2(0.3, 0.3)
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_col3")
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_col3"]
-radius = 30.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

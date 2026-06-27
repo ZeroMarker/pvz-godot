@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://d3k3q2j1k1k1k"]
+[gd_scene load_steps=1 format=3 uid="uid://d3k3q2j1k1k1k"]
 
 [ext_resource type="Script" path="res://scripts/plant.gd" id="1_ghi789"]
 
@@ -10,10 +10,6 @@ position = Vector2(0, 0)
 position = Vector2(0, -30)
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_col1")
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col1"]
-size = Vector2(60, 80)
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 position = Vector2(0, 20)
