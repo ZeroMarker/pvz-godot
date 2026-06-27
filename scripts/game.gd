@@ -56,6 +56,24 @@ func initialize_grid():
 		grid_data.append([])
 		for col in range(GRID_COLUMNS):
 			grid_data[row].append(null)
+	
+	# Create grid UI
+	var grid_container = $GameBoard/Grid
+	# Clear existing grid cells
+	for child in grid_container.get_children():
+		child.queue_free()
+	
+	# Create new grid cells
+	for row in range(GRID_ROWS):
+		for col in range(GRID_COLUMNS):
+			var cell = ColorRect.new()
+			cell.size = CELL_SIZE
+			# Alternate colors for better visibility
+			if (row + col) % 2 == 0:
+				cell.color = Color(0.6, 0.8, 0.6, 0.5)
+			else:
+				cell.color = Color(0.5, 0.7, 0.5, 0.5)
+			grid_container.add_child(cell)
 
 func _process(delta):
 	# Game loop
@@ -118,7 +136,8 @@ func try_place_plant(mouse_pos: Vector2):
 
 func screen_to_grid(screen_pos: Vector2) -> Vector2i:
 	# Convert screen position to grid coordinates
-	var local_pos = screen_pos - GRID_START_POS
+	var game_board_pos = $GameBoard.global_position
+	var local_pos = screen_pos - game_board_pos
 	var col = int(local_pos.x / CELL_SIZE.x)
 	var row = int(local_pos.y / CELL_SIZE.y)
 	
@@ -161,8 +180,8 @@ func remove_plant_from_grid(plant):
 				return
 
 func grid_to_screen(row: int, col: int) -> Vector2:
-	# Convert grid coordinates to screen position
-	return GRID_START_POS + Vector2(col * CELL_SIZE.x, row * CELL_SIZE.y) + CELL_SIZE / 2
+	# Convert grid coordinates to screen position (relative to GameBoard)
+	return Vector2(col * CELL_SIZE.x, row * CELL_SIZE.y) + CELL_SIZE / 2
 
 func add_sun(amount: int):
 	# Add sun to the counter
@@ -207,7 +226,8 @@ func spawn_zombie():
 	# Spawn a zombie at random row on the right side
 	var row = randi() % GRID_ROWS
 	var zombie_instance = zombie_scene.instantiate()
-	zombie_instance.position = Vector2(1300, GRID_START_POS.y + row * CELL_SIZE.y + CELL_SIZE.y / 2)
+	# Position relative to GameBoard (right side of grid)
+	zombie_instance.position = Vector2(GRID_COLUMNS * CELL_SIZE.x + 100, row * CELL_SIZE.y + CELL_SIZE.y / 2)
 	zombie_instance.zombie_name = "Zombie " + str(zombies_killed + 1)
 	
 	# Add to game board
@@ -233,7 +253,8 @@ func _on_zombie_died():
 func check_game_over():
 	# Check if any zombie reached the left side
 	for zombie in get_tree().get_nodes_in_group("zombies"):
-		if zombie.position.x < GRID_START_POS.x:
+		# Zombie position is relative to GameBoard, check if x < 0
+		if zombie.position.x < 0:
 			game_over = true
 			show_game_over()
 			break

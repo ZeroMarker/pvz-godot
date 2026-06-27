@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_def456"]
 
 [node name="Game" type="Control"]
+script = ExtResource("1_def456")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,54 +24,12 @@ color = Color(0.4, 0.6, 0.4, 1)
 position = Vector2(100, 50)
 
 [node name="Grid" type="GridContainer" parent="GameBoard"]
+layout_mode = 0
 columns = 9
 theme_override_constants/h_separation = 5
 theme_override_constants/v_separation = 5
 
-[node name="GridCell0" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.6, 0.8, 0.6, 0.5)
 
-[node name="GridCell1" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.5, 0.7, 0.5, 0.5)
-
-[node name="GridCell2" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.6, 0.8, 0.6, 0.5)
-
-[node name="GridCell3" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.5, 0.7, 0.5, 0.5)
-
-[node name="GridCell4" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.6, 0.8, 0.6, 0.5)
-
-[node name="GridCell5" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.5, 0.7, 0.5, 0.5)
-
-[node name="GridCell6" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.6, 0.8, 0.6, 0.5)
-
-[node name="GridCell7" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.5, 0.7, 0.5, 0.5)
-
-[node name="GridCell8" type="ColorRect" parent="GameBoard/Grid"]
-layout_mode = 2
-size = Vector2(80, 100)
-color = Color(0.6, 0.8, 0.6, 0.5)
 
 [node name="PlantSlot" type="HBoxContainer" parent="."]
 layout_mode = 1

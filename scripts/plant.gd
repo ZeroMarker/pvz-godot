@@ -21,6 +21,9 @@ func _ready():
 	$HealthBar.max_value = max_health
 	$HealthBar.value = health
 	
+	# Add to plants group
+	add_to_group("plants")
+	
 	# Set plant-specific properties
 	match plant_name:
 		"Sunflower":
@@ -113,8 +116,13 @@ func generate_sun():
 	if plant_name == "Sunflower":
 		var sun_scene = preload("res://scenes/sun.tscn")
 		var sun_instance = sun_scene.instantiate()
-		sun_instance.position = position + Vector2(0, -50)
-		get_parent().add_child(sun_instance)
+		# Convert to global position
+		var global_pos = global_position + Vector2(0, -50)
+		sun_instance.position = global_pos
+		# Add to game scene, not GameBoard
+		var game = get_tree().get_first_node_in_group("game")
+		if game:
+			game.add_child(sun_instance)
 
 
 

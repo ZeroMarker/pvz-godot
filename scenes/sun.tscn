@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/sun.gd" id="1_mno345"]
 
 [node name="Sun" type="Area2D"]
+script = ExtResource("1_mno345")
 position = Vector2(0, 0)
 
 [node name="Sprite" type="Sprite2D" parent="."]
