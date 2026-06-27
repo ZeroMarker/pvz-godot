@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2k3q2j1k1k1k"]
+
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_def456"]
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.4, 0.6, 0.4, 1)
+
+[node name="GameBoard" type="Node2D" parent="."]
+position = Vector2(100, 100)
+
+[node name="Grid" type="GridContainer" parent="GameBoard"]
+columns = 9
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="PlantSlot" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 110.0
+grow_horizontal = 0
+
+[node name="SunflowerSlot" type="Button" parent="PlantSlot"]
+layout_mode = 2
+text = "Sunflower"
+
+[node name="PeashooterSlot" type="Button" parent="PlantSlot"]
+layout_mode = 2
+text = "Peashooter"
+
+[node name="WallnutSlot" type="Button" parent="PlantSlot"]
+layout_mode = 2
+text = "Wall-nut"
+
+[node name="SunCounter" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 120.0
+offset_right = -10.0
+offset_bottom = 150.0
+grow_horizontal = 0
+text = "Sun: 50"
+horizontal_alignment = 2
+
+[node name="PauseButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+grow_horizontal = 0
+text = "Pause"
+
+[node name="GameTimer" type="Timer" parent="."]
+wait_time = 1.0
+autostart = true
+
+[connection signal="pressed" from="PlantSlot/SunflowerSlot" to="." method="_on_sunflower_slot_pressed"]
+[connection signal="pressed" from="PlantSlot/PeashooterSlot" to="." method="_on_peashooter_slot_pressed"]
+[connection signal="pressed" from="PlantSlot/WallnutSlot" to="." method="_on_wallnut_slot_pressed"]
+[connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="timeout" from="GameTimer" to="." method="_on_game_timer_timeout"]

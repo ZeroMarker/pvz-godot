@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://e4k3q2j1k1k1k"]
+
+[ext_resource type="Script" path="res://scripts/zombie.gd" id="1_jkl012"]
+
+[node name="Zombie" type="CharacterBody2D"]
+position = Vector2(1200, 300)
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, -30)
+
+[node name="CollisionShape" type="CollisionShape2D" parent="."]
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+position = Vector2(0, 20)
+size = Vector2(60, 10)
+value = 100.0
+
+[node name="MovementTimer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true
+
+[connection signal="timeout" from="MovementTimer" to="." method="_on_movement_timer_timeout"]
