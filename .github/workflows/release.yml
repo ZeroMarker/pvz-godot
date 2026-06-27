@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  GODOT_VERSION: "4.2"
+  EXPORT_NAME: "pvz-godot"
+
+jobs:
+  export:
+    name: Export ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Windows
+            preset: Windows
+            artifact: windows
+          - platform: Linux
+            preset: Linux
+            artifact: linux
+          - platform: macOS
+            preset: macOS
+            artifact: macos
+          - platform: Web
+            preset: Web
+            artifact: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Export
+        id: export
+        uses: firebelley/godot-export@v5
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+          relative_project_path: ./
+          cache: true
+          preset: ${{ matrix.preset }}
+          archive_output: true
+          archive_name: ${{ env.EXPORT_NAME }}-${{ matrix.artifact }}
+          archive_format: zip
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXPORT_NAME }}-${{ matrix.artifact }}
+          path: ${{ steps.export.outputs.archive_directory }}/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: export
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/**/*.zip
