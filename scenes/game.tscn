@@ -20,12 +20,57 @@ grow_vertical = 2
 color = Color(0.4, 0.6, 0.4, 1)
 
 [node name="GameBoard" type="Node2D" parent="."]
-position = Vector2(100, 100)
+position = Vector2(100, 50)
 
 [node name="Grid" type="GridContainer" parent="GameBoard"]
 columns = 9
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 5
+
+[node name="GridCell0" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.6, 0.8, 0.6, 0.5)
+
+[node name="GridCell1" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.5, 0.7, 0.5, 0.5)
+
+[node name="GridCell2" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.6, 0.8, 0.6, 0.5)
+
+[node name="GridCell3" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.5, 0.7, 0.5, 0.5)
+
+[node name="GridCell4" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.6, 0.8, 0.6, 0.5)
+
+[node name="GridCell5" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.5, 0.7, 0.5, 0.5)
+
+[node name="GridCell6" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.6, 0.8, 0.6, 0.5)
+
+[node name="GridCell7" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.5, 0.7, 0.5, 0.5)
+
+[node name="GridCell8" type="ColorRect" parent="GameBoard/Grid"]
+layout_mode = 2
+size = Vector2(80, 100)
+color = Color(0.6, 0.8, 0.6, 0.5)
 
 [node name="PlantSlot" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -79,8 +124,28 @@ text = "Pause"
 wait_time = 1.0
 autostart = true
 
+[node name="SunGenerationTimer" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[node name="ZombieSpawnTimer" type="Timer" parent="."]
+wait_time = 10.0
+autostart = true
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 110.0
+offset_bottom = 40.0
+text = "Back to Menu"
+
 [connection signal="pressed" from="PlantSlot/SunflowerSlot" to="." method="_on_sunflower_slot_pressed"]
 [connection signal="pressed" from="PlantSlot/PeashooterSlot" to="." method="_on_peashooter_slot_pressed"]
 [connection signal="pressed" from="PlantSlot/WallnutSlot" to="." method="_on_wallnut_slot_pressed"]
 [connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]
 [connection signal="timeout" from="GameTimer" to="." method="_on_game_timer_timeout"]
+[connection signal="timeout" from="SunGenerationTimer" to="." method="_on_sun_generation_timer_timeout"]
+[connection signal="timeout" from="ZombieSpawnTimer" to="." method="_on_zombie_spawn_timer_timeout"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

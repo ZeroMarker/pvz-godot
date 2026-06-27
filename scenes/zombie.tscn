@@ -2,13 +2,17 @@
 
 [ext_resource type="Script" path="res://scripts/zombie.gd" id="1_jkl012"]
 
-[node name="Zombie" type="CharacterBody2D"]
+[node name="Zombie" type="CharacterBody2D" groups=["zombies"]]
 position = Vector2(1200, 300)
 
 [node name="Sprite" type="Sprite2D" parent="."]
 position = Vector2(0, -30)
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_col2")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2"]
+size = Vector2(60, 80)
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 position = Vector2(0, 20)
