@@ -45,6 +45,8 @@ pvz-godot/
 
 This project is built with Godot 4.x using GDScript. The architecture follows Godot's best practices with scene-based composition.
 
+Tests run in GitHub Actions on every push and pull request. The workflow imports the project with Godot 4.2.2 and executes `tests/smoke_test.gd` in headless mode.
+
 ### Key Systems
 
 1. **Plant System**: Modular plant behavior with stats and abilities
@@ -52,6 +54,12 @@ This project is built with Godot 4.x using GDScript. The architecture follows Go
 3. **Sun Economy**: Resource management and collection
 4. **Wave System**: Zombie spawning and difficulty progression
 5. **UI System**: Menus, HUD, and game state management
+
+### Architecture
+
+- `game.gd` coordinates economy, waves, and scene-level state.
+- `game_board.gd` owns grid geometry and plant occupancy.
+- Plants, zombies, and suns report gameplay events through signals instead of editing game state directly.
 
 ## Contributing
 

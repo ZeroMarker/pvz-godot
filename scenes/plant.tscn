@@ -1,4 +1,4 @@
-[gd_scene load_steps=1 format=3 uid="uid://d3k3q2j1k1k1k"]
+[gd_scene load_steps=2 format=3 uid="uid://d3k3q2j1k1k1k"]
 
 [ext_resource type="Script" path="res://scripts/plant.gd" id="1_ghi789"]
 
@@ -15,9 +15,3 @@ position = Vector2(0, -30)
 position = Vector2(0, 20)
 size = Vector2(60, 10)
 value = 100.0
-
-[node name="AttackTimer" type="Timer" parent="."]
-wait_time = 1.5
-autostart = false
-
-[connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]
