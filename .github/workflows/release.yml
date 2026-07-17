@@ -5,55 +5,81 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 env:
-  GODOT_VERSION: "4.2"
+  GODOT_VERSION: "4.2.2"
   EXPORT_NAME: "pvz-godot"
 
 jobs:
   export:
     name: Export ${{ matrix.platform }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: Windows
             preset: Windows
+            export_path: build/windows/pvz-godot.exe
             artifact: windows
           - platform: Linux
             preset: Linux
+            export_path: build/linux/pvz-godot.x86_64
             artifact: linux
           - platform: macOS
             preset: macOS
+            export_path: build/macos/pvz-godot.zip
             artifact: macos
           - platform: Web
             preset: Web
+            export_path: build/web/index.html
             artifact: web
 
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Export
-        id: export
-        uses: firebelley/godot-export@v5.2.1
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
         with:
-          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
-          relative_project_path: ./
-          cache: true
-          preset: ${{ matrix.preset }}
-          archive_output: true
-          archive_name: ${{ env.EXPORT_NAME }}-${{ matrix.artifact }}
-          archive_format: zip
+          version: ${{ env.GODOT_VERSION }}
+          use-dotnet: false
+          include-templates: true
 
-      - name: Upload Artifact
+      - name: Export preset
+        env:
+          PRESET: ${{ matrix.preset }}
+          EXPORT_PATH: ${{ matrix.export_path }}
+        run: |
+          mkdir -p "$(dirname "$EXPORT_PATH")"
+          godot --headless --path . --export-release "$PRESET" "$EXPORT_PATH"
+
+      - name: Package export
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          EXPORT_PATH: ${{ matrix.export_path }}
+          ARCHIVE_PATH: dist/${{ env.EXPORT_NAME }}-${{ matrix.artifact }}.zip
+        run: |
+          mkdir -p dist
+          if [ "$PLATFORM" = "macOS" ]; then
+            cp "$EXPORT_PATH" "$ARCHIVE_PATH"
+          else
+            export_dir=$(dirname "$EXPORT_PATH")
+            archive_path="$GITHUB_WORKSPACE/$ARCHIVE_PATH"
+            cd "$export_dir"
+            zip -r "$archive_path" .
+          fi
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.EXPORT_NAME }}-${{ matrix.artifact }}
-          path: ${{ steps.export.outputs.archive_directory }}/*.zip
+          path: dist/${{ env.EXPORT_NAME }}-${{ matrix.artifact }}.zip
           if-no-files-found: error
 
   release:
@@ -63,7 +89,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download All Artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
