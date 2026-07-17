@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c2k3q2j1k1k1k"]
+[gd_scene load_steps=3 format=3 uid="uid://c2k3q2j1k1k1k"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_def456"]
+[ext_resource type="Script" path="res://scripts/game_board.gd" id="2_board"]
 
 [node name="Game" type="Control"]
 script = ExtResource("1_def456")
@@ -21,6 +22,7 @@ grow_vertical = 2
 color = Color(0.4, 0.6, 0.4, 1)
 
 [node name="GameBoard" type="Control" parent="."]
+script = ExtResource("2_board")
 layout_mode = 1
 anchors_preset = 0
 offset_left = 100.0
@@ -34,8 +36,8 @@ anchors_preset = 0
 offset_right = 720.0
 offset_bottom = 500.0
 columns = 9
-theme_override_constants/h_separation = 5
-theme_override_constants/v_separation = 5
+theme_override_constants/v_separation = 0
+theme_override_constants/h_separation = 0
 
 
 
@@ -76,6 +78,7 @@ text = "Sun: 50"
 horizontal_alignment = 2
 
 [node name="PauseButton" type="Button" parent="."]
+process_mode = 3
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -87,10 +90,6 @@ offset_bottom = 40.0
 grow_horizontal = 0
 text = "Pause"
 
-[node name="GameTimer" type="Timer" parent="."]
-wait_time = 1.0
-autostart = true
-
 [node name="SunGenerationTimer" type="Timer" parent="."]
 wait_time = 5.0
 autostart = true
@@ -100,6 +99,7 @@ wait_time = 10.0
 autostart = true
 
 [node name="BackButton" type="Button" parent="."]
+process_mode = 3
 layout_mode = 1
 anchors_preset = 0
 offset_left = 10.0
@@ -112,7 +112,6 @@ text = "Back to Menu"
 [connection signal="pressed" from="PlantSlot/PeashooterSlot" to="." method="_on_peashooter_slot_pressed"]
 [connection signal="pressed" from="PlantSlot/WallnutSlot" to="." method="_on_wallnut_slot_pressed"]
 [connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]
-[connection signal="timeout" from="GameTimer" to="." method="_on_game_timer_timeout"]
 [connection signal="timeout" from="SunGenerationTimer" to="." method="_on_sun_generation_timer_timeout"]
 [connection signal="timeout" from="ZombieSpawnTimer" to="." method="_on_zombie_spawn_timer_timeout"]
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

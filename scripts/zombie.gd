@@ -1,5 +1,12 @@
 extends CharacterBody2D
 
+signal defeated
+signal reached_house
+
+const PLACEHOLDER_TEXTURE := preload("res://assets/icon.svg")
+const ATTACK_RANGE := 50.0
+const LANE_TOLERANCE := 40.0
+
 # Zombie properties
 @export var zombie_name: String = "Zombie"
 @export var health: int = 100
@@ -14,16 +21,18 @@ var is_attacking: bool = false
 var target_plant: Node2D = null
 var attack_timer: float = 0.0
 
-func _ready():
-	# Initialize zombie
-	print(zombie_name, " spawned")
-	$HealthBar.max_value = max_health
-	$HealthBar.value = health
-	
-	# Add to zombies group
+@onready var sprite: Sprite2D = $Sprite
+@onready var health_bar: ProgressBar = $HealthBar
+
+func _ready() -> void:
+	sprite.texture = PLACEHOLDER_TEXTURE
+	sprite.scale = Vector2(0.2, 0.2)
+	sprite.modulate = Color.DARK_SEA_GREEN
+	health_bar.max_value = max_health
+	health_bar.value = health
 	add_to_group("zombies")
 
-func _process(delta):
+func _process(delta: float) -> void:
 	# Zombie update logic
 	if not is_alive:
 		return
@@ -35,62 +44,51 @@ func _process(delta):
 	check_for_plants()
 	
 	# Attack if target exists
-	if target_plant and attack_timer <= 0:
+	if is_instance_valid(target_plant) and attack_timer <= 0:
 		attack_plant()
 		attack_timer = attack_speed
 	
 	# Move left if not attacking
 	if not is_attacking:
 		position.x -= move_speed * delta
+		if position.x < 0.0:
+			reached_house.emit()
+			queue_free()
 
-func check_for_plants():
-	# Check if there's a plant to attack
-	var plants = get_tree().get_nodes_in_group("plants")
-	var nearest_plant = null
-	var nearest_distance = 50.0  # Attack range
-	
-	for plant in plants:
-		if plant.is_alive:
-			var distance = position.distance_to(plant.position)
-			if distance < nearest_distance:
-				nearest_distance = distance
-				nearest_plant = plant
-	
-	if nearest_plant != target_plant:
-		target_plant = nearest_plant
-		is_attacking = target_plant != null
+func check_for_plants() -> void:
+	var nearest_plant: Node2D = null
+	var nearest_distance := ATTACK_RANGE
+	for plant in get_tree().get_nodes_in_group("plants"):
+		if not is_instance_valid(plant) or not plant.is_alive:
+			continue
+		var horizontal_distance: float = absf(position.x - plant.position.x)
+		var is_same_lane := absf(position.y - plant.position.y) <= LANE_TOLERANCE
+		if is_same_lane and horizontal_distance < nearest_distance:
+			nearest_distance = horizontal_distance
+			nearest_plant = plant
+	target_plant = nearest_plant
+	is_attacking = is_instance_valid(target_plant)
 
-func attack_plant():
-	# Attack the target plant
-	if target_plant and target_plant.has_method("take_damage"):
+func attack_plant() -> void:
+	if is_instance_valid(target_plant) and target_plant.has_method("take_damage"):
 		target_plant.take_damage(damage)
-		print(zombie_name, " attacked ", target_plant.plant_name)
-		
-		# Check if plant is dead
 		if not target_plant.is_alive:
 			target_plant = null
 			is_attacking = false
 
-func take_damage(amount: int):
-	# Take damage
+func take_damage(amount: int) -> void:
+	if not is_alive:
+		return
 	health -= amount
-	$HealthBar.value = health
+	health_bar.value = health
 	
 	if health <= 0:
 		die()
 
-func die():
-	# Zombie death
+func die() -> void:
+	if not is_alive:
+		return
 	is_alive = false
-	print(zombie_name, " died")
-	
-	# Remove from zombies group
 	remove_from_group("zombies")
-	
-	# TODO: Play death animation
+	defeated.emit()
 	queue_free()
-
-func _on_movement_timer_timeout():
-	# Movement timer callback
-	# This can be used for smoother movement updates
-	pass

@@ -1,270 +1,153 @@
 extends Control
 
-# Game constants
-const GRID_COLUMNS = 9
-const GRID_ROWS = 5
-const CELL_SIZE = Vector2(80, 100)
-const GRID_START_POS = Vector2(100, 50)
-
-# Game variables
-var sun_count: int = 50
-var selected_plant: String = ""
-var game_paused: bool = false
-var game_over: bool = false
-var wave_number: int = 1
-var zombies_killed: int = 0
-
-# Plant costs
-const PLANT_COSTS = {
+const PLANT_SCENE := preload("res://scenes/plant.tscn")
+const ZOMBIE_SCENE := preload("res://scenes/zombie.tscn")
+const SUN_SCENE := preload("res://scenes/sun.tscn")
+const PLANT_COSTS := {
 	"Sunflower": 50,
 	"Peashooter": 100,
-	"Wallnut": 50
+	"Wallnut": 50,
 }
 
-# Plant scenes
-var plant_scenes = {
-	"Sunflower": preload("res://scenes/plant.tscn"),
-	"Peashooter": preload("res://scenes/plant.tscn"),
-	"Wallnut": preload("res://scenes/plant.tscn")
+@onready var board: GameBoard = $GameBoard
+@onready var sun_counter: Label = $SunCounter
+@onready var pause_button: Button = $PauseButton
+@onready var zombie_spawn_timer: Timer = $ZombieSpawnTimer
+@onready var plant_buttons := {
+	"Sunflower": $PlantSlot/SunflowerSlot,
+	"Peashooter": $PlantSlot/PeashooterSlot,
+	"Wallnut": $PlantSlot/WallnutSlot,
 }
 
-# Zombie scene
-var zombie_scene = preload("res://scenes/zombie.tscn")
+var sun_count := 50
+var selected_plant := ""
+var wave_number := 1
+var zombies_killed := 0
+var game_over := false
 
-# Grid data
-var grid_data = []  # 2D array to track plant placement
 
-func _ready():
-	# Initialize the game
-	print("Game started")
-	initialize_grid()
-	update_sun_display()
-	
-	# Add to game group
+func _ready() -> void:
 	add_to_group("game")
-	
-	# Start sun generation timer
-	$SunGenerationTimer.start()
-	
-	# Start zombie spawning timer
-	$ZombieSpawnTimer.start()
+	update_sun_display()
 
-func initialize_grid():
-	# Initialize grid data
-	grid_data = []
-	for row in range(GRID_ROWS):
-		grid_data.append([])
-		for col in range(GRID_COLUMNS):
-			grid_data[row].append(null)
-	
-	# Create grid UI
-	var grid_container = $GameBoard/Grid
-	# Clear existing grid cells
-	for child in grid_container.get_children():
-		child.queue_free()
-	
-	# Create new grid cells
-	for row in range(GRID_ROWS):
-		for col in range(GRID_COLUMNS):
-			var cell = ColorRect.new()
-			cell.size = CELL_SIZE
-			# Alternate colors for better visibility
-			if (row + col) % 2 == 0:
-				cell.color = Color(0.6, 0.8, 0.6, 0.5)
-			else:
-				cell.color = Color(0.5, 0.7, 0.5, 0.5)
-			grid_container.add_child(cell)
 
-func _process(delta):
-	# Game loop
-	if game_over or game_paused:
+func _input(event: InputEvent) -> void:
+	if game_over:
 		return
-	
-	# Check for game over conditions
-	check_game_over()
+	if event.is_action_pressed("ui_cancel"):
+		set_paused(not get_tree().paused)
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		try_place_plant(event.position)
 
-func _on_sunflower_slot_pressed():
-	select_plant("Sunflower")
 
-func _on_peashooter_slot_pressed():
-	select_plant("Peashooter")
+func select_plant(plant_name: String) -> void:
+	if not PLANT_COSTS.has(plant_name) or sun_count < PLANT_COSTS[plant_name]:
+		return
+	selected_plant = plant_name
+	for name in plant_buttons:
+		plant_buttons[name].modulate = Color.YELLOW if name == plant_name else Color.WHITE
 
-func _on_wallnut_slot_pressed():
-	select_plant("Wallnut")
 
-func select_plant(plant_name: String):
-	# Select a plant for placement
-	if sun_count >= PLANT_COSTS.get(plant_name, 0):
-		selected_plant = plant_name
-		print("Selected plant: ", plant_name)
-		# Highlight selected plant slot
-		highlight_plant_slot(plant_name)
-	else:
-		print("Not enough sun for ", plant_name)
-
-func highlight_plant_slot(plant_name: String):
-	# Reset all slots
-	$PlantSlot/SunflowerSlot.modulate = Color.WHITE
-	$PlantSlot/PeashooterSlot.modulate = Color.WHITE
-	$PlantSlot/WallnutSlot.modulate = Color.WHITE
-	
-	# Highlight selected slot
-	match plant_name:
-		"Sunflower":
-			$PlantSlot/SunflowerSlot.modulate = Color.YELLOW
-		"Peashooter":
-			$PlantSlot/PeashooterSlot.modulate = Color.GREEN
-		"Wallnut":
-			$PlantSlot/WallnutSlot.modulate = Color.BROWN
-
-func _input(event):
-	# Handle mouse input for plant placement
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if selected_plant != "":
-			try_place_plant(event.position)
-
-func try_place_plant(mouse_pos: Vector2):
-	# Try to place plant at mouse position
-	var grid_pos = screen_to_grid(mouse_pos)
-	if grid_pos != null:
-		var row = grid_pos.y
-		var col = grid_pos.x
-		if grid_data[row][col] == null:
-			place_plant(row, col)
-		else:
-			print("Cell already occupied")
-
-func screen_to_grid(screen_pos: Vector2) -> Vector2i:
-	# Convert screen position to grid coordinates
-	var game_board_pos = $GameBoard.global_position
-	var local_pos = screen_pos - game_board_pos
-	var col = int(local_pos.x / CELL_SIZE.x)
-	var row = int(local_pos.y / CELL_SIZE.y)
-	
-	if col >= 0 and col < GRID_COLUMNS and row >= 0 and row < GRID_ROWS:
-		return Vector2i(col, row)
-	return null
-
-func place_plant(row: int, col: int):
-	# Place the selected plant on the grid
-	if selected_plant != "" and sun_count >= PLANT_COSTS.get(selected_plant, 0):
+func try_place_plant(screen_position: Vector2) -> void:
+	if selected_plant.is_empty():
+		return
+	var cell := board.screen_to_cell(screen_position)
+	if not board.is_cell_empty(cell):
+		return
+	var plant = PLANT_SCENE.instantiate()
+	plant.plant_name = selected_plant
+	plant.sun_created.connect(_on_plant_sun_created)
+	if board.place_plant(plant, cell):
 		sun_count -= PLANT_COSTS[selected_plant]
-		update_sun_display()
-		
-		# Create plant instance
-		var plant_instance = plant_scenes[selected_plant].instantiate()
-		plant_instance.plant_name = selected_plant
-		plant_instance.position = grid_to_screen(row, col)
-		
-		# Add to game board
-		$GameBoard.add_child(plant_instance)
-		
-		# Update grid data
-		grid_data[row][col] = plant_instance
-		
-		# Reset selection
 		selected_plant = ""
-		highlight_plant_slot("")
-		
-		print("Placed plant at row ", row, " col ", col)
-	else:
-		print("Cannot place plant")
+		for button in plant_buttons.values():
+			button.modulate = Color.WHITE
+		update_sun_display()
 
-func remove_plant_from_grid(plant):
-	# Remove plant from grid data
-	for row in range(GRID_ROWS):
-		for col in range(GRID_COLUMNS):
-			if grid_data[row][col] == plant:
-				grid_data[row][col] = null
-				print("Removed plant from grid at row ", row, " col ", col)
-				return
 
-func grid_to_screen(row: int, col: int) -> Vector2:
-	# Convert grid coordinates to screen position (relative to GameBoard)
-	return Vector2(col * CELL_SIZE.x, row * CELL_SIZE.y) + CELL_SIZE / 2
-
-func add_sun(amount: int):
-	# Add sun to the counter
+func add_sun(amount: int) -> void:
 	sun_count += amount
 	update_sun_display()
 
-func update_sun_display():
-	# Update the sun counter display
-	$SunCounter.text = "Sun: " + str(sun_count)
 
-func _on_pause_button_pressed():
-	# Toggle pause
-	game_paused = !game_paused
-	get_tree().paused = game_paused
-	if game_paused:
-		$PauseButton.text = "Resume"
-	else:
-		$PauseButton.text = "Pause"
-
-func _on_game_timer_timeout():
-	# Game timer tick
-	pass
-
-func _on_sun_generation_timer_timeout():
-	# Generate sun from sky
-	generate_sun()
-
-func generate_sun():
-	# Create a sun that falls from the sky
-	var sun_scene = preload("res://scenes/sun.tscn")
-	var sun_instance = sun_scene.instantiate()
-	sun_instance.position = Vector2(randf_range(100, 1100), -50)
-	add_child(sun_instance)
+func update_sun_display() -> void:
+	sun_counter.text = "Sun: %d" % sun_count
+	for name in plant_buttons:
+		plant_buttons[name].disabled = sun_count < PLANT_COSTS[name]
 
 
+func generate_sun() -> void:
+	var sun = SUN_SCENE.instantiate()
+	sun.position = Vector2(randf_range(board.global_position.x, board.global_position.x + board.size.x), -50.0)
+	sun.collected.connect(add_sun)
+	add_child(sun)
 
-func _on_zombie_spawn_timer_timeout():
-	# Spawn a zombie
-	spawn_zombie()
 
-func spawn_zombie():
-	# Spawn a zombie at random row on the right side
-	var row = randi() % GRID_ROWS
-	var zombie_instance = zombie_scene.instantiate()
-	# Position relative to GameBoard (right side of grid)
-	zombie_instance.position = Vector2(GRID_COLUMNS * CELL_SIZE.x + 100, row * CELL_SIZE.y + CELL_SIZE.y / 2)
-	zombie_instance.zombie_name = "Zombie " + str(zombies_killed + 1)
-	
-	# Add to game board
-	$GameBoard.add_child(zombie_instance)
-	
-	# Connect zombie death signal
-	zombie_instance.tree_exited.connect(_on_zombie_died)
-	
-	print("Spawned zombie at row ", row)
+func _on_plant_sun_created(sun: Area2D, spawn_position: Vector2) -> void:
+	sun.position = spawn_position
+	sun.collected.connect(add_sun)
+	add_child(sun)
 
-func _on_zombie_died():
-	# Handle zombie death
+
+func spawn_zombie() -> void:
+	var zombie = ZOMBIE_SCENE.instantiate()
+	var row := randi_range(0, GameBoard.ROWS - 1)
+	zombie.position = board.lane_position(row, GameBoard.COLUMNS * GameBoard.CELL_SIZE.x + 100.0)
+	zombie.zombie_name = "Zombie %d" % (zombies_killed + 1)
+	zombie.defeated.connect(_on_zombie_defeated)
+	zombie.reached_house.connect(_on_zombie_reached_house)
+	board.add_child(zombie)
+
+
+func set_paused(paused: bool) -> void:
+	get_tree().paused = paused
+	pause_button.text = "Resume" if paused else "Pause"
+
+
+func show_game_over() -> void:
+	if game_over:
+		return
+	game_over = true
+	set_paused(true)
+	pause_button.text = "Game Over"
+	pause_button.disabled = true
+
+
+func _on_zombie_defeated() -> void:
 	zombies_killed += 1
-	print("Zombie died. Total killed: ", zombies_killed)
-	
-	# Check for wave completion
 	if zombies_killed >= wave_number * 5:
 		wave_number += 1
-		print("Wave ", wave_number, " started!")
-		# Increase difficulty
-		$ZombieSpawnTimer.wait_time = max(0.5, $ZombieSpawnTimer.wait_time - 0.1)
+		zombie_spawn_timer.wait_time = maxf(0.5, zombie_spawn_timer.wait_time - 0.1)
 
-func check_game_over():
-	# Check if any zombie reached the left side
-	for zombie in get_tree().get_nodes_in_group("zombies"):
-		# Zombie position is relative to GameBoard, check if x < 0
-		if zombie.position.x < 0:
-			game_over = true
-			show_game_over()
-			break
 
-func show_game_over():
-	# Show game over screen
-	print("Game Over!")
-	# TODO: Implement game over UI
-	get_tree().paused = true
+func _on_zombie_reached_house() -> void:
+	show_game_over()
 
-func _on_back_button_pressed():
-	# Return to main menu
+
+func _on_sunflower_slot_pressed() -> void:
+	select_plant("Sunflower")
+
+
+func _on_peashooter_slot_pressed() -> void:
+	select_plant("Peashooter")
+
+
+func _on_wallnut_slot_pressed() -> void:
+	select_plant("Wallnut")
+
+
+func _on_pause_button_pressed() -> void:
+	set_paused(not get_tree().paused)
+
+
+func _on_sun_generation_timer_timeout() -> void:
+	generate_sun()
+
+
+func _on_zombie_spawn_timer_timeout() -> void:
+	spawn_zombie()
+
+
+func _on_back_button_pressed() -> void:
+	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

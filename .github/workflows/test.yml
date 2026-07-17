@@ -1,0 +1,35 @@
+name: Godot Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.2.2
+          use-dotnet: false
+          include-templates: false
+
+      - name: Import project and parse resources
+        run: godot --headless --path . --import
+
+      - name: Run gameplay smoke tests
+        run: godot --headless --path . --script res://tests/smoke_test.gd
